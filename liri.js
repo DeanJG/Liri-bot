@@ -9,14 +9,40 @@ let spotify = keys.spotify
 let omdb = keys.omdb
 let bands = keys.bands
 // pulling command line input
-let [, , num1, num2] = process.argv
+let [, , action, entry] = process.argv
 
+const reqFunc = (action, entry) => {
+    switch (action) {
+        case 'concert-this':
 
-// axios request for omdb
-axios.get(`http://www.omdbapi.com/?apikey=${omdb.id}&t=goodfellas`)
-  .then(r => {
-    console.log(r);
-  })
-  .catch(e => {
-    console.log(e);
-  });
+        break;
+        case 'spotify-this-song':
+            
+        break;
+        case 'movie-this':
+            // axios request for omdb
+            axios.get(`http://www.omdbapi.com/?apikey=${omdb.id}&t=${entry}`)
+                .then(({ data }) => {
+                    console.log(`
+                    Title: ${data.Title},
+                    Year: ${data.Year},
+                    IMDB Rating: ${data.imdbRating},
+                    Tomatoes Rating: ${data.Ratings[1].Value},
+                    Origin Country: ${data.Country},
+                    Language(s): ${data.Language},
+                    Plot: ${data.Plot},
+                    Actors: ${data.Actors}
+                    `)
+                })
+                .catch(e => {
+                    console.log(e);
+                })
+        break;
+        case 'do-what-it-says':
+            
+        break;
+        default:
+        break
+    }
+}
+reqFunc(action, entry)
