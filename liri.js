@@ -2,17 +2,30 @@
 require("dotenv").config()
 // activates axios npm
 const axios = require(`axios`)
-// activates moment npm
+// moment npm
 const moment = require(`moment`)
+// spotify npm
+const Spotify = require('node-spotify-api')
 // activates the keys stored in keys.js
 let keys = require("./keys.js")
 // activates the various api keys
-let spotify = keys.spotify
+let spotify = new Spotify({
+    id: keys.spotify.id,
+    secret: keys.spotify.secret
+})
 let omdb = keys.omdb
 let bands = keys.bands
 // pulling command line input
 let [, , action, entry] = process.argv
 
+function movieFilter (entry) {
+    if (!(entry)) {
+        return `mr+nobody`
+    } else if (entry.indexOf(' ') >= 0) {
+        let newEntry = entry.split(` `).join(`+`)
+        return newEntry
+    } else {return entry}
+}
 const reqFunc = (action, entry) => {
     switch (action) {
         case 'concert-this':
@@ -29,11 +42,26 @@ const reqFunc = (action, entry) => {
                 })
         break;
         case 'spotify-this-song':
-            
+            spotify.search({ type: 'track', query: `${entry}` }, function (e, data) {
+                if (e) {
+                    return console.log('Error occurred: ' + e)
+                } else {
+                    const { album, artists, name:songTitle, preview_url } = data.tracks.items[0]
+                    console.log(`
+                    Album Name: ${album.name}
+                    ----------------------------------------
+                    Group/Artist(s): ${artists[0].name}
+                    ----------------------------------------
+                    Song: ${songTitle}
+                    ----------------------------------------
+                    Spotify Preview: ${preview_url}
+                    `)
+                }
+            })
         break;
         case 'movie-this':
             // axios request for omdb
-            axios.get(`http://www.omdbapi.com/?apikey=${omdb.id}&t=${entry}`)
+            axios.get(`http://www.omdbapi.com/?apikey=${omdb.id}&t=${movieFilter(entry)}`)
                 .then(({ data }) => {
                     const {Title, Year, imdbRating, Ratings, Country, Language, Plot, Actors} = data
                     console.log(`
