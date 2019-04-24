@@ -6,6 +6,8 @@ const axios = require(`axios`)
 const moment = require(`moment`)
 // spotify npm
 const Spotify = require('node-spotify-api')
+// fs npm
+const fs = require(`fs`)
 // activates the keys stored in keys.js
 let keys = require("./keys.js")
 // activates the various api keys
@@ -17,7 +19,7 @@ let omdb = keys.omdb
 let bands = keys.bands
 // pulling command line input
 let [, , action, entry] = process.argv
-
+// filters the movie entry for spaces or blank entry
 function movieFilter (entry) {
     if (!(entry)) {
         return `mr+nobody`
@@ -26,7 +28,14 @@ function movieFilter (entry) {
         return newEntry
     } else {return entry}
 }
-const reqFunc = (action, entry) => {
+// filters song choice for blank entry
+function songFilter (entry) {
+    if (!(entry)) {
+        return `fresh prince`
+    } else {return entry}
+}
+// main app function, switching depending on which type of command is given
+const switchFunc = (action, entry) => {
     switch (action) {
         case 'concert-this':
             axios.get(`https://rest.bandsintown.com/artists/${entry}/events?app_id=${bands.id}`)
@@ -42,7 +51,7 @@ const reqFunc = (action, entry) => {
                 })
         break;
         case 'spotify-this-song':
-            spotify.search({ type: 'track', query: `${entry}` }, function (e, data) {
+            spotify.search({ type: 'track', query: `${songFilter(entry)}` }, function (e, data) {
                 if (e) {
                     return console.log('Error occurred: ' + e)
                 } else {
@@ -54,7 +63,8 @@ const reqFunc = (action, entry) => {
                     ----------------------------------------
                     Song: ${songTitle}
                     ----------------------------------------
-                    Spotify Preview: ${preview_url}
+                    Spotify Preview(if available):
+                    -> ${preview_url}
                     `)
                 }
             })
@@ -70,7 +80,7 @@ const reqFunc = (action, entry) => {
                     IMDB Rating:     ${imdbRating}
                     Rotten Tomatoes: ${Ratings[1].Value}
                     ----------------------------------------
-                    Origin Country: ${Country}
+                    Origin Country(ies): ${Country}
                     Language(s): ${Language}
                     ----------------------------------------
                     Plot: ${Plot}
@@ -82,11 +92,21 @@ const reqFunc = (action, entry) => {
                     console.log(e);
                 })
         break;
-        case 'do-what-it-says':
-            
-        break;
         default:
         break
     }
 }
-reqFunc(action, entry)
+// container if statement //
+// checks if request to run is writtin in-line or in txt file //
+if (action === `do-what-it-says`) {
+    fs.readFile(`random.txt`, `utf8`, (e, data) => {
+        if (e) {
+            console.log(e)
+        } else {
+            let dataArr = data.split(`,`)
+            let [action, entry] = dataArr
+            switchFunc(action, entry)
+        }
+    })
+
+} else {switchFunc(action, entry)}
