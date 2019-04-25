@@ -38,6 +38,7 @@ function songFilter (entry) {
 const switchFunc = (action, entry) => {
     switch (action) {
         case 'concert-this':
+        // bands in town request
             axios.get(`https://rest.bandsintown.com/artists/${entry}/events?app_id=${bands.id}`)
                 .then(({ data }) => {
                     const {name, country, region, city} = data[0].venue
@@ -51,6 +52,7 @@ const switchFunc = (action, entry) => {
                 })
         break;
         case 'spotify-this-song':
+        // spotify request
             spotify.search({ type: 'track', query: `${songFilter(entry)}` }, function (e, data) {
                 if (e) {
                     return console.log('Error occurred: ' + e)
